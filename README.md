@@ -43,6 +43,7 @@
 * Pilot (glass cockpit) view which includes attitude indicator as well as pilot-familiar layout of additional data
 * Radar (map) view shows model in relationship to home position, can be displayed either as launch/pilot-based or compass-based orientation
 * Altitude graph view shows altitude for the last 1-6 minutes
+* Experimental CRSF/MAVLink status-text proof of concept with severity, repeat counts and a transient latest-message display
 * Colour LCD transmitters show all views at the same time, and include additional features like roll scale
 * Bar gauges for Fuel (% battery mAh capacity remaining), Battery voltage, RSSI strength, Transmitter battery, GPS accuracy (HDOP), Variometer (and Altitude for X9D, X9D+ and X9E transmitters)
 * Display and voice alerts for flight modes and flight mode modifiers (altitude hold, heading hold, home reset, etc.)
@@ -77,6 +78,9 @@ Supported environments are given below, older versions may also work but are uns
 
 * Crossfire is not fully supported with OpenTX, due to a long-standing OpenTX issue; EdgeTX is recommended for use with Crossfire (and generally).
 * Some telemetry is missing from Crossfire: HDOP, GPS altitude and some secondary flight mode notifications like heading hold
+* Status messages require a CRSF source that emits custom status-text frames (`0x80/0xF1` or legacy `0x7F/0xF1`). ExpressLRS can produce these from MAVLink `STATUSTEXT`; native CRSF telemetry alone does not imply support.
+* Only one Lua script should consume the raw CRSF queue. Another script using `crossfireTelemetryPop()` at the same time can intercept status or device-info frames.
+* The integrated status-message feature is a validated protocol/UI proof of concept, but it is not memory-stable on the TBS Tango 2. A standalone message-only telemetry script is the recommended follow-up for that radio; it must replace, not run alongside, this telemetry script because permanent scripts share the Lua runtime and memory budget.
 * Other Lua scripts may not run at the same time as INAV Lua Telemetry due to limited transmitter resources)
 
 ## Special Thanks
@@ -104,7 +108,7 @@ Supported environments are given below, older versions may also work but are uns
 
 * [Tips & Common Problems](https://luatelemetry.readthedocs.io/en/latest/Tips-%26-Common-Problems/)
 * [Support Issues](https://github.com/iNavFlight/OpenTX-Telemetry-Widget/issues?q=is%3Aissue)
-* ~~Support Chat (Telegram)~~: Contact current maintainer @nvrm17 on telegram for any questions
+* ~~Support Chat (Telegram): Contact current maintainer @nvrm17 on telegram for any questions~~
 
 ## Other
 

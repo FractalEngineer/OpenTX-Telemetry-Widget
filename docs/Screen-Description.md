@@ -12,6 +12,17 @@
 * When not armed you can flip between max/min and current values by using the dial or +/- buttons
 * Short press `Enter` to quickly flip between the views
 
+### Status Messages View
+
+Compatible CRSF telemetry sources can display status text together with its MAVLink severity. The newest message is shown first, adjacent repeats are combined with an `xN` count, and the history is limited to 20 entries.
+
+This integrated view is a validated proof of concept. It is not memory-stable on the TBS Tango 2 once live messages accumulate. A future standalone message-only telemetry script is recommended there, configured instead of the full iNav telemetry script rather than concurrently with it.
+
+* On monochrome radios, short press `Enter` to cycle to the Messages view. Use up/down to scroll and `Exit` to return to the Classic view.
+* On colour radios, press `Enter` (right stick while disarmed) to open or close Messages. On a TX16S touchscreen, tap the title bar to open it and tap the page to close it.
+* New non-debug messages briefly appear over the normal telemetry view. Repeated copies update the history count without keeping the popup visible indefinitely.
+* ExpressLRS can convert MAVLink `STATUSTEXT` into the supported CRSF status-text frame. Long MAVLink 2 messages cannot be reassembled because the CRSF conversion does not carry chunk identifiers.
+
 ### Classic View
 
 ![sample](https://raw.githubusercontent.com/iNavFlight/LuaTelemetry/development/assets/iNavKey.png "Classic view screen description")

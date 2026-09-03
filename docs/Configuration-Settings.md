@@ -90,7 +90,7 @@ Note also that on some of the smaller B&W radios (Boxer, Zorro, TX12) with a rol
   * **RSSI Feedback** - RSSI beeper and haptic feedback on or off (default: On)
   * **AltHold Center FB** - Hepatic/audio feedback for Alt Hold center throttle position (default: Off)
   * **Speed Sensor** - Speed sensor to use, GPS or (if available) Pitot air speed (default: GPS)
-  * **View Mode** - Classic, pilot, radar or altitude graph view modes (default: Classic)
+  * **View Mode** - Classic, pilot, radar, altitude graph or experimental status messages view modes (default: Classic). The integrated status view is not memory-stable on the TBS Tango 2.
   * **Roll Indicator** - Turn on/off roll indicator on Horus (default: Off)
   * **Aircraft Symbol** - Options 0 - 5 on Horus, [see below](#horusjumper-t16-aircraft-symbol-options) for options (default: 0)
   * **HUD Home Icon** - Select HUD or simple orientation for home icon on Horus (default: Off)
