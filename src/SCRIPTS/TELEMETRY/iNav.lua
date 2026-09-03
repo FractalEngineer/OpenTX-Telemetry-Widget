@@ -51,7 +51,7 @@ end
 loadScript(FILE_PATH .. "reset" .. ext, env)(data)
 collectgarbage()
 
-local crsf, elrs, distCalc = loadScript(FILE_PATH .. "other" .. ext, env)(config, data, units, getTelemetryId, getTelemetryUnit, FILE_PATH, env, SMLCD)
+local crsf, rawCrsf, distCalc = loadScript(FILE_PATH .. "other" .. ext, env)(config, data, units, getTelemetryId, getTelemetryUnit, FILE_PATH, env, SMLCD)
 collectgarbage()
 
 
@@ -97,6 +97,7 @@ end
 
 function inav.background()
 	local gpsTemp
+	if rawCrsf ~= nil then rawCrsf() end
 	data.rssi, data.rssiLow, data.rssiCrit = getRSSI()
 	if data.rssi > 0 then
 		data.telem = true
@@ -448,8 +449,6 @@ function inav.background()
 	if (data.elrs == nil or data.elrs == 0) and data.fm_id > -1 then
 		-- Request device info from CRSF devices (used to detect TBS/ExpressLRS)
 		crossfireTelemetryPush(0x28, { 0x00, 0xEA })
-		data.elrs = elrs()
-		collectgarbage()
 	end
 
 	data.bkgd = true

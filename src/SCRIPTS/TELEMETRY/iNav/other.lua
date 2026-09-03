@@ -1,6 +1,6 @@
 local config, data, units, getTelemetryId, getTelemetryUnit, FILE_PATH, env, SMLCD = ...
 local crsf = nil
-local elrs = nil
+local rawCrsf = nil
 
 -- Detect Crossfire
 data.fm_id = getTelemetryId("FM") > -1 and getTelemetryId("FM") or getTelemetryId("PV")
@@ -15,8 +15,22 @@ end
 --data.nv = true
 
 if data.fm_id > -1 then
-	crsf = loadScript(FILE_PATH .. "crsf.luac", env)(config, data, getTelemetryId)
-	elrs = loadScript(FILE_PATH .. "elrs.luac", env)()
+	crsf = loadScript(FILE_PATH .. "crsf", env)(config, data, getTelemetryId)
+	local dispatcher = nil
+	rawCrsf = function(unload)
+		if unload then
+			dispatcher = nil
+			collectgarbage()
+			return
+		end
+		if dispatcher == nil then
+			collectgarbage()
+			local script = loadScript(FILE_PATH .. "status", env)
+			dispatcher = script ~= nil and script(data) or false
+			collectgarbage()
+		end
+		if dispatcher then dispatcher() end
+	end
 	collectgarbage()
 end
 
@@ -64,9 +78,10 @@ config[19].x = SMLCD and ((config[14].v == 1 or data.crsf) and 1 or 2) or (data.
 config[19].v = math.min(config[19].x, config[19].v)
 config[20].v = data.pitot and config[20].v or 0
 if config[28].v == 0 then
-	config[25].x = 2
-	config[25].v = math.min(config[25].v, 2)
+	if config[25].v == 3 then config[25].v = 2 end
 end
+if SMLCD and config[25].v == 1 then config[25].v = 2 end
+config[25].x = 4
 config[34].v = 0
 
 local tmp = config[20].v == 0 and "GSpd" or "ASpd"
@@ -106,4 +121,4 @@ if data.dist_id == -1 or data.simu then
 	end
 end
 
-return crsf, elrs, distCalc
+return crsf, rawCrsf, distCalc

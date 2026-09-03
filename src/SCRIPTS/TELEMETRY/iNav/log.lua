@@ -116,7 +116,7 @@ local function playLog(data, config, distCalc, date)
 	    end
 	    if record[i] == "1RSS(dB)" then data.crsf = true end
 	 end
-	 fake = loadScript(FILE_PATH .. "log_" .. (data.crsf and "c" or "s") .. ".luac", env)()
+	 fake = loadScript(FILE_PATH .. "log_" .. (data.crsf and "c" or "s"), env)()
       else
 	 -- Fake telemetry specific to Crossfire or S.Port
 	 fake(data, config, record, label, toNum)

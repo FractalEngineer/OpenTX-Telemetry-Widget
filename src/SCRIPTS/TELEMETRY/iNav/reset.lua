@@ -33,6 +33,13 @@ data.altMin = 0
 data.altMax = data.alt_unit == 10 and 50 or 30
 data.altCur = 1
 data.altLst = getTime()
+data.messages = {}
+data.messageScroll = 0
+data.messageStartTime = getTime()
+data.lastMessageText = nil
+data.lastMessageSeverity = nil
+data.messagePopupUntil = 0
+data.messageView = false
 for i = 1, 60 do
 	data.alt[i] = 0
 end

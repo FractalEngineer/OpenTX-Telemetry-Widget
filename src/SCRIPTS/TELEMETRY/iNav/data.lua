@@ -83,6 +83,7 @@ local data = {
 	configTop = 1,
 	configSelect = 0,
 	crsf = false,
+	elrs = 0,
 	alt = {},
 	v = -1,
 	simu = string.sub(r, -4) == "simu",
@@ -90,6 +91,9 @@ local data = {
 	--msg = m + i * 0.1 < 2.2 and "OpenTX v2.2+ Required" or false,
 	lastLock = { lat = 0, lon = 0 },
 	fUnit = {"mAh", "mWh"},
+	messages = {},
+	messageScroll = 0,
+	messagePopupUntil = 0,
 }
 
 function data.RGB(r, g, b)
