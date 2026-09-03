@@ -1,4 +1,4 @@
-.PHONY: all clean print-version
+.PHONY: all clean print-version test
 
 SRC_ROOT := src
 TELEMETRY := $(SRC_ROOT)/SCRIPTS/TELEMETRY
@@ -98,6 +98,19 @@ clean: clean-obj clean-zip clean-lua
 
 print-version:
 	@echo $(VERSION)
+
+test: $(LUA) $(LUAC)
+	$(LUA) tests/status_test.lua
+	$(LUA) tests/elrs_test.lua
+	$(LUA) tests/messages_test.lua small
+	$(LUA) tests/messages_test.lua tango
+	$(LUA) tests/messages_test.lua wide
+	$(LUA) tests/messages_test.lua color
+	$(LUA) tests/main_test.lua mono
+	$(LUA) tests/main_test.lua small
+	$(LUA) tests/main_test.lua tango
+	$(LUA) tests/main_test.lua tango fail
+	$(LUA) tests/main_test.lua color
 
 zip-lua: $(ZIPLUA)
 $(ZIPLUA): $(SRC)
