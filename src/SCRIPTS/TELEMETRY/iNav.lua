@@ -91,6 +91,54 @@ local function endLog()
 	loadScript(FILE_PATH .. "reset" .. ext, env)(data)
 end
 
+local severityLabels = {[0] = "EMR", "ALR", "CRT", "ERR", "WRN", "NOT", "INF", "DBG"}
+
+local function drawMessagePopup()
+	if data.lastMessageText == nil or data.messagePopupUntil <= getTime() then return end
+	local severity = data.lastMessageSeverity
+	local label = severityLabels[severity] or "UNK"
+	local prefix = (severity <= 3 and "!" or "") .. label .. " "
+	if HORUS then
+		local maxChars = math.floor((LCD_W - 12) / 8) - #prefix
+		local message = string.sub(data.lastMessageText, 1, math.max(maxChars, 1))
+		local color = severity <= 4 and data.WarningColor or data.TextColor
+		fill(0, 22, LCD_W, 30, data.set_flags(0, BLACK))
+		rect(0, 22, LCD_W, 30, data.set_flags(0, color))
+		text(6, 28, prefix .. message, data.set_flags(SMLSIZE, color))
+	else
+		local maxChars = math.max(math.floor((LCD_W - 4) / 5), 4)
+		local firstChars = math.max(maxChars - #prefix, 1)
+		local wrapped = #data.lastMessageText > firstChars
+		local height = wrapped and 18 or 9
+		local y = math.max(LCD_H - height, 8)
+		fill(0, y, LCD_W, height, ERASE)
+		rect(0, y, LCD_W, height, SOLID)
+		text(2, y + 1, prefix .. string.sub(data.lastMessageText, 1, firstChars), SMLSIZE)
+		if wrapped then
+			local last = firstChars + maxChars
+			local message = string.sub(data.lastMessageText, firstChars + 1, last)
+			if #data.lastMessageText > last then message = string.sub(message, 1, math.max(#message - 1, 1)) .. "." end
+			text(2, y + 10, message, SMLSIZE)
+		end
+	end
+end
+
+local function loadDynamic(name, id)
+	if rawCrsf ~= nil then rawCrsf(true) end
+	view = nil
+	collectgarbage()
+	local script = loadScript(FILE_PATH .. name .. ext, env)
+	view = script ~= nil and script() or nil
+	collectgarbage()
+	data.loadFailed = view == nil and name or nil
+	data.v = id
+end
+
+local function drawLoadError()
+	text(0, 18, "LOAD " .. (data.loadFailed or "?") .. " FAILED", SMLSIZE + INVERS)
+	text(0, 29, "ENTER next EXIT classic", SMLSIZE)
+end
+
 function inav.update(opt)
    options = opt
 end
@@ -508,6 +556,10 @@ function inav.run(event, touchState)
 				else
 					event = EVT_ENTER_BREAK
 				end
+			elseif data.messageView then
+				event = EVT_EXIT_BREAK
+			elseif touchState.y < 37 then
+				event = EVT_ENTER_BREAK
 			elseif touchState.y < 277 then
 				-- Tap on upper area: toggle max/min values
 				if not data.armed then
@@ -524,6 +576,10 @@ function inav.run(event, touchState)
 				event = EVT_VIRTUAL_NEXT
 			elseif touchState.swipeDown then
 				event = EVT_VIRTUAL_PREV
+			elseif touchState.swipeLeft and EVT_VIRTUAL_INC ~= nil then
+				event = EVT_VIRTUAL_INC
+			elseif touchState.swipeRight and EVT_VIRTUAL_DEC ~= nil then
+				event = EVT_VIRTUAL_DEC
 			elseif touchState.slideY then
 				-- Accumulate drag distance for continuous scroll
 				data.touchAccumY = (data.touchAccumY or 0) + touchState.slideY
@@ -547,51 +603,83 @@ function inav.run(event, touchState)
 	-- Config menu or views
 	if data.configStatus > 0 then
 		if data.v ~= 9 then
-		   view = nil
-		   collectgarbage()
-		   view = loadScript(FILE_PATH .. "menu" .. ext, env)()
-		   data.v = 9
+		   loadDynamic("menu", 9)
 		end
-		tmp = config[30].v
-		view(data, config, units, lang, event, gpsDegMin, getTelemetryId, getTelemetryUnit, SMLCD, HORUS, text, rect, fill, frmt, env)
-		if HORUS then
-		   data.menu(tmp)
-		end
-		-- Exit menu or select log for playback, save config settings
-		if data.configSelect == 0 and (event == EVT_EXIT_BREAK or (event == EVT_ENTER_BREAK and data.configStatus == 34 and config[34].x > -1 and not data.armed)) then
-			view = nil
-			collectgarbage()
-			loadScript(FILE_PATH .. "save" .. ext, env)(config, data, frmt, FILE_PATH)
+		if view then
+			tmp = config[30].v
+			view(data, config, units, lang, event, gpsDegMin, getTelemetryId, getTelemetryUnit, SMLCD, HORUS, text, rect, fill, frmt, env)
+			if HORUS then
+			   data.menu(tmp)
+			end
+			-- Exit menu or select log for playback, save config settings
+			if data.configSelect == 0 and (event == EVT_EXIT_BREAK or (event == EVT_ENTER_BREAK and data.configStatus == 34 and config[34].x > -1 and not data.armed)) then
+				if rawCrsf ~= nil then rawCrsf(true) end
+				view = nil
+				collectgarbage()
+				local script = loadScript(FILE_PATH .. "save" .. ext, env)
+				if script == nil then
+					data.loadFailed = "save"
+				else
+					script(config, data, frmt, FILE_PATH)
+				end
+			end
+		else
+			drawLoadError()
+			if event == EVT_EXIT_BREAK then data.configStatus = 0 data.v = -1 end
 		end
 	else
 	   -- User input
 --	   if event ~= 0 then print("DBG: INPUT "..event)  end
-		if not data.armed and (event == EVT_VIRTUAL_PREV or event == EVT_VIRTUAL_NEXT) then
+		local messagePage = (HORUS and data.messageView) or (not HORUS and config[25].v == 4)
+		if not messagePage and not data.armed and (event == EVT_VIRTUAL_PREV or event == EVT_VIRTUAL_NEXT) then
 			-- Toggle showing max/min values
 			data.showMax = not data.showMax
 		end
-		if event == EVT_VIRTUAL_NEXT or event == EVT_VIRTUAL_PREV then
+		if not messagePage and (event == EVT_VIRTUAL_NEXT or event == EVT_VIRTUAL_PREV) then
 			-- Toggle launch/compass-based orientation
 			data.showDir = not data.showDir
+		elseif (event == EVT_ENTER_BREAK or event == EVT_EXIT_BREAK) and messagePage then
+			if HORUS then data.messageView = false else config[25].v = 0 end
+			data.messageOffset = 0
+		elseif event == EVT_ENTER_BREAK and HORUS then
+			data.messageView = not data.messageView
+			data.messageScroll = 0
+			data.messageOffset = 0
 		elseif event == EVT_ENTER_BREAK and not HORUS then
 			-- Cycle through views
-			config[25].v = config[25].v >= (config[28].v == 0 and 2 or 3) and 0 or config[25].v + 1
+			if config[25].v == 2 and config[28].v == 0 then
+				config[25].v = 4
+			else
+				config[25].v = config[25].v >= 4 and 0 or config[25].v + 1
+			end
 		elseif event == MENU or event == EVT_VIRTUAL_MENU_LONG then
 			-- Config menu
 			data.configStatus = data.configLast
+		elseif event == EVT_EXIT_BREAK and data.loadFailed ~= nil then
+			data.messageView = false
+			config[25].v = 0
+			data.v = -1
 		elseif event == EVT_EXIT_BREAK and data.doLogs then
 			-- Exit playback
 			endLog()
 		end
 
 		-- Views
-		if data.v ~= config[25].v then
-		    view = nil
-		    collectgarbage()
-		    view = loadScript(FILE_PATH .. (HORUS and (TX16S and "tx16s" or (TX15 and "tx15" or (data.nv and "nirvana" or "horus"))) or (config[25].v == 0 and "view" or (config[25].v == 1 and "pilot" or (config[25].v == 2 and "radar" or "alt")))) .. ext, env)()
-		    data.v = config[25].v
+		messagePage = (HORUS and data.messageView) or (not HORUS and config[25].v == 4)
+		local viewId = messagePage and (HORUS and 5 or 4) or config[25].v
+		if data.v ~= viewId then
+		    local name = messagePage and "messages" or (HORUS and (TX16S and "tx16s" or (TX15 and "tx15" or (data.nv and "nirvana" or "horus"))) or (config[25].v == 0 and "view" or (config[25].v == 1 and (SMLCD and "pilot_s" or "pilot") or (config[25].v == 2 and (SMLCD and "radar_s" or "radar") or "alt"))))
+		    loadDynamic(name, viewId)
 		end
-		view(data, config, modes, dir, units, labels, gpsDegMin, hdopGraph, icons, calcBearing, calcDir, VERSION, SMLCD, FILE_PATH, text, line, rect, fill, frmt)
+		if messagePage then
+			data.messagePopupUntil = 0
+		end
+		if view then
+			view(data, config, modes, dir, units, labels, gpsDegMin, hdopGraph, icons, calcBearing, calcDir, VERSION, SMLCD, FILE_PATH, text, line, rect, fill, frmt, event)
+			if not messagePage then drawMessagePopup() end
+		else
+			drawLoadError()
+		end
 	end
 	collectgarbage()
 

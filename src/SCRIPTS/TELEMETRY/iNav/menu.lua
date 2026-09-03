@@ -34,7 +34,7 @@ local function view(data, config, units, lang, event, gpsDegMin, getTelemetryId,
 		{ t = "GPS HDOP View",    l = {[0] = "Graph", "Decimal"} }, -- 22
 		{ t = "Fuel Unit",        l = {[0] = "Percent", "mAh", "mWh"} }, -- 23
 		{ t = "Vario Steps",      m = 0, a = units[data.alt_unit], l = {[0] = 1, 2, 5, 10, 15, 20, 25, 30, 40, 50} }, -- 24
-		{ t = "View Mode",        l = {[0] = "Classic", "Pilot", "Radar", "Altitude"} }, -- 25
+		{ t = "View Mode",        l = {[0] = "Classic", "Pilot", "Radar", "Altitude", "Messages"} }, -- 25
 		{ t = "AltHold Center FB",l = 1 }, -- 26
 		{ t = "Battery Capacity", m = 150, i = 50, a = "mAh" }, -- 27
 		{ t = "Altitude Graph",   l = {[0] = "Off", 1, 2, 3, 4, 5, 6}, a = " Min" }, -- 28
@@ -67,7 +67,7 @@ local function view(data, config, units, lang, event, gpsDegMin, getTelemetryId,
 	-- Special limit cases
 	config[19].x = SMLCD and ((config[14].v == 1 or data.crsf) and 1 or 2) or (data.nv and 1 or 2)
 	config[19].v = math.min(config[19].x, config[19].v)
-	config[25].x = config[28].v == 0 and 2 or 3
+	config[25].x = 4
 	if config[28].v == 0 and config[25].v == 3 then
 		config[25].v = 2
 	end
@@ -201,6 +201,8 @@ local function view(data, config, units, lang, event, gpsDegMin, getTelemetryId,
 				data.speed_id = getTelemetryId(tmp)
 				data.speedMax_id = getTelemetryId(tmp .. "+")
 				data.speed_unit = getTelemetryUnit(tmp)
+			elseif z == 25 and config[28].v == 0 and config[25].v == 3 then -- Skip disabled altitude view
+				config[25].v = edit_event == 1 and 4 or 2
 			elseif z == 28 then -- Altitude graph
 				for i = 1, 60 do
 					data.alt[i] = 0

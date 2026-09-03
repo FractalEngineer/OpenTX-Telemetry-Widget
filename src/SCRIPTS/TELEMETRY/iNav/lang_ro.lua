@@ -76,7 +76,7 @@ local function lang(config2)
 	--config2[20].l = {[0] = "GPS", "Pitot"}			-- "GPS", "Pitot"
 	config2[22].l = {[0] = "Grafic", "Decimal"}			-- "Graph", "Decimal"
 	config2[23].l = {[0] = "Procentaj", "mAh", "mWh"}		-- "Percent", "mAh", "mWh"
-	config2[25].l = {[0] = "Clasic", "Pilot", "Radar", "Inaltime"}-- "Classic", "Pilot", "Radar", "Altitude"
+	config2[25].l = {[0] = "Clasic", "Pilot", "Radar", "Inaltime", "Mesaje"}-- "Classic", "Pilot", "Radar", "Altitude", "Messages"
 	config2[26].l = {[0] = "Oprit", "Pornit"}				-- "Off", "On"
 	config2[28].l[0] = "Inchis"					-- "Off"
 	config2[31].l = {[0] = "Oprit", "Pornit"}				-- "Off", "On"

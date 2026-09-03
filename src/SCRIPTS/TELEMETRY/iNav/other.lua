@@ -80,7 +80,6 @@ config[20].v = data.pitot and config[20].v or 0
 if config[28].v == 0 then
 	if config[25].v == 3 then config[25].v = 2 end
 end
-if SMLCD and config[25].v == 1 then config[25].v = 2 end
 config[25].x = 4
 config[34].v = 0
 

@@ -93,6 +93,7 @@ local data = {
 	fUnit = {"mAh", "mWh"},
 	messages = {},
 	messageScroll = 0,
+	messageOffset = 0,
 	messagePopupUntil = 0,
 }
 

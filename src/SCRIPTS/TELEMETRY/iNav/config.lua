@@ -26,7 +26,7 @@ local config = {
 	{ o = 31, c = 1, v = 0 }, -- GPS HDOP View - 22
 	{ o = 6,  c = 1, v = 0, x = 2 }, -- Fuel Unit - 23
 	{ o = 16, c = 1, v = 3, x = 9 }, -- Vario Steps - 24
-	{ o = 25, c = 1, v = 0, x = 3 }, -- View Mode - 25
+	{ o = 25, c = 1, v = 0, x = 4 }, -- View Mode - 25
 	{ o = 23, c = 1, v = 0 }, -- AltHold Center FB - 26
 	{ o = 7,  c = 5, v = 1500, x = 50000 }, -- Battery Capacity - 27
 	{ o = 17, c = 1, v = 0, x = 6 }, -- Altitude Graph - 28
